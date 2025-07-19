@@ -11,6 +11,8 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.AimCommandGamePiece;
 import frc.robot.subsystems.CANRangeSubsystem;
 import frc.robot.subsystems.PhotonHelpers;
+import frc.robot.subsystems.ReactDashSubsystem;
+import frc.robot.subsystems.TeleopDashboardSubsystem;
 import frc.robot.subsystems.Swerve.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -25,6 +27,8 @@ public class RobotContainer {
 
   // Robot's Subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private final ReactDashSubsystem m_reactDashSubsystem = new ReactDashSubsystem();
+  private final TeleopDashboardSubsystem m_teleopDashboardSubsystem = new TeleopDashboardSubsystem();
   // private final CANRangeSubsystem m_CANRange = new CANRangeSubsystem();
   // private final LEDSubsystem m_LEDSubsystem = new LEDSubsystem();
   // private final PhotonHelpers m_photonSubsystem = new PhotonHelpers(VisionConstants.k_aprilTagCameraName, VisionConstants.k_objectDetectionCameraName);
