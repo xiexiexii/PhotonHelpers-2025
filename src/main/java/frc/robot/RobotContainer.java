@@ -2,8 +2,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -11,8 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.AimCommandGamePiece;
-import frc.robot.commands.LEDColorChangeCommand;
-import frc.robot.subsystems.LEDSubsystem;
+import frc.robot.subsystems.CANRangeSubsystem;
 import frc.robot.subsystems.PhotonHelpers;
 import frc.robot.subsystems.Swerve.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -28,8 +25,9 @@ public class RobotContainer {
 
   // Robot's Subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final LEDSubsystem m_LEDSubsystem = new LEDSubsystem();
-  private final PhotonHelpers m_photonSubsystem = new PhotonHelpers(VisionConstants.k_aprilTagCameraName, VisionConstants.k_objectDetectionCameraName);
+  // private final CANRangeSubsystem m_CANRange = new CANRangeSubsystem();
+  // private final LEDSubsystem m_LEDSubsystem = new LEDSubsystem();
+  // private final PhotonHelpers m_photonSubsystem = new PhotonHelpers(VisionConstants.k_aprilTagCameraName, VisionConstants.k_objectDetectionCameraName);
   SendableChooser<Command> m_chooser = new SendableChooser<>();
 
   // Controllers
@@ -60,7 +58,7 @@ public class RobotContainer {
     SmartDashboard.putData("AutoMode", m_chooser);
 
     // Named Command Configuration
-    NamedCommands.registerCommand("Change LED Color", new LEDColorChangeCommand(m_LEDSubsystem));
+    // NamedCommands.registerCommand("Change LED Color", new LEDColorChangeCommand(m_LEDSubsystem));
 
     // Autos
     m_chooser.addOption("Curvy yay", m_robotDrive.getAuto("Curvy yay"));
@@ -75,9 +73,9 @@ public class RobotContainer {
     );
 
     // Aim Command Photon - B
-    new JoystickButton(m_driverController, ControllerConstants.k_B)
-      .onTrue(new AimCommandGamePiece(m_robotDrive, m_photonSubsystem)
-    );
+    // new JoystickButton(m_driverController, ControllerConstants.k_B)
+    //   .onTrue(new AimCommandGamePiece(m_robotDrive, m_photonSubsystem)
+    // );
   }
 
   public Command getAutonomousCommand() {

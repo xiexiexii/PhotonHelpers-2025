@@ -219,6 +219,7 @@ public class PhotonHelpers extends SubsystemBase {
   /*
   ************************************
   **   METHODS FOR OBJ. DETECTION   **
+  **  NOTE: ORANGE PI 5 REQUIRED!!  **
   ************************************
   */
 

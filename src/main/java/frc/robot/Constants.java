@@ -95,8 +95,9 @@ public final class Constants {
   }
 
   // LED Stuff
-  public static final class LEDConstants {
-    public static final int blinkinPort = 0;  
+  public static final class SensorConstants {
+    public static final int k_blinkinPort = 0;  
+    public static final int k_CANRangeID = 60;
   }
 
   // Vision Constants
@@ -109,14 +110,20 @@ public final class Constants {
     // Boolean for Position Status
     public static boolean k_positioned = false;
     public static boolean k_positioning = false;
+    public static boolean k_positionedTOF = false;
 
     // Target & Thresholds
     public static double k_aimTarget = 0.0;
     public static double k_aimThreshold = 0.5;
+    public static double k_rangeThresholdTOF = 0.01;
 
     // PID Stuff
     public static final double kP_aim = 0.10;
     public static final double kI_aim = 0.000;
     public static final double kD_aim = 0.000;
+
+    public static final double kP_range = 0.10;
+    public static final double kI_range = 0.000;
+    public static final double kD_range = 0.000;
   }
 }

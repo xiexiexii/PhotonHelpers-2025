@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.ctre.phoenix6.configs.CANrangeConfiguration;
+import com.ctre.phoenix6.signals.UpdateModeValue;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -43,7 +45,7 @@ public final class Configs {
         .velocityConversionFactor(turningFactor / 60.0); // radians per second
       turningConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-        // These are example gains you may need to them for your own robot!
+        // These are example gains you may need to tune them for your own robot!
         .pid(1, 0, 0)
         .outputRange(-1, 1)
         // Enable PID wrap around for the turning motor. This will allow the PID
@@ -52,6 +54,25 @@ public final class Configs {
         // longer route.
         .positionWrappingEnabled(true)
         .positionWrappingInputRange(0, turningFactor);
+    }
+  }
+
+  // Sensors 
+  public static final class SensorConfigs {
+
+    // init
+    public static final CANrangeConfiguration CANRangeConfig = new CANrangeConfiguration();
+
+    // Actual stuff to adjust
+    static {
+      CANRangeConfig.FutureProofConfigs = true; // Firmware incompatability safety net
+
+      CANRangeConfig.ProximityParams.ProximityThreshold = 0.5; // How far is far enough?
+      CANRangeConfig.ProximityParams.ProximityHysteresis = 0.01; // Tolerance for measurement
+      CANRangeConfig.ProximityParams.MinSignalStrengthForValidMeasurement = 2500; // Signal strength req.
+
+      CANRangeConfig.ToFParams.UpdateFrequency = 50; // How often should it measure?
+      CANRangeConfig.ToFParams.UpdateMode = UpdateModeValue.ShortRange100Hz; // Measurement mode
     }
   }
 }

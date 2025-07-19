@@ -2,12 +2,12 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.LEDConstants;;
+import frc.robot.Constants.SensorConstants;;
 
 public class LEDSubsystem extends SubsystemBase {
     Spark blinkin;
     public LEDSubsystem(){
-        blinkin = new Spark(LEDConstants.blinkinPort);
+        blinkin = new Spark(SensorConstants.k_blinkinPort);
     }
 
     public void periodic(){

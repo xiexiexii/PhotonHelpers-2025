@@ -111,7 +111,7 @@ public class AimCommandApriltag extends Command {
       || !tiv || timer.get() > 3;
   }
 
-  // Advanced PID-assisted ranging control with Photon's Yaw value from target-relative data
+  // Advanced PID-assisted aiming control with Photon's Yaw value from target-relative data
   private double photon_aim_PID() {
 
     // Camera Yaw Angle in Degrees
