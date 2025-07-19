@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 
 import { createTheme, CssBaseline, Divider, FormControlLabel, Grid, ListItemButton, ListItemIcon, ListItemText, Paper, Radio, RadioGroup, Stack, styled, Switch, TextField, ThemeProvider } from "@mui/material";
 import { NetworkTables, NetworkTablesTopic, NetworkTablesTypeInfos } from 'ntcore-ts-client';
 import { CheckBox, Commute, DeveloperBoard, DeveloperBoardOff, DoneAll, Flare, FlashOff, Loop, Memory, Power, PowerOff, QrCode, QrCodeScanner, Refresh, RemoveDone, Settings, SettingsSuggest, SmartToyOutlined, SportsEsportsOutlined, Warning } from '@mui/icons-material';
 import { Puff } from 'react-loader-spinner';
+import { useNTCore } from './NTCoreContext';
 
 // Number Formatter for Match Time Display
 const matchTimeFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 0});
@@ -53,7 +54,17 @@ const getIcon = (column: number, row: number): React.ReactElement => {
 }
 
 // Creates an Instance of the NTCore Client for the App
-const NT_CORE = NetworkTables.getInstanceByTeam(3245);
+// const NT_CORE = NetworkTables.getInstanceByTeam(3245);
+
+// Prefix
+/*
+const mainPrefix = NT_CORE.createPrefixTopic("/ReactDash/Main");
+mainPrefix.subscribe((value) => {
+	console.log('[Test Topic] Got Value: ' + value);
+});
+*/
+
+// const tabPub = NT_CORE.createTopic<string>('/ReactDash/Main/dpub/tab', NetworkTablesTypeInfos.kString, "Autonomous");
 
 // REEFSCAPE Theme Colors (YAY!)
 const COLOR_HEATHER_VIOLET = " #E3467F";
@@ -97,6 +108,8 @@ const topics: Topics = {
 // App Function (migrated from React.Component)
 export default function App() {
 
+	const NT_CORE2 = useNTCore();
+
 	// State Variables -> If you don't know about these, GO DOC DIVING
 	const [connected, setConnected] = useState(false);
 	const [selectedTab, setSelectedTab] = useState("Autonomous");
@@ -128,7 +141,7 @@ export default function App() {
 	const [currentReefLevel, setCurrentReefLevel] = useState("4");
 	const [currentReefID, setCurrentReefID] = useState("0-1");
 
-	const [tabPub, setTabPub] = useState(NT_CORE.createTopic<string>('/ReactDash/Main/dpub/tab', NetworkTablesTypeInfos.kString, "Autonomous"));
+	const selectedTabTopic = useRef<NetworkTablesTopic<string>>(NT_CORE2.createTopic<string>('/ReactDash/Main/dpub/tab', NetworkTablesTypeInfos.kString, "Autonomous"));
 
 	// Functions for handling state stuff
 	function handleConnection(connected: boolean) {
@@ -139,7 +152,7 @@ export default function App() {
 		console.log("handleTabClick: " + tab)
 		setSelectedTab(() => tab);
 		
-		tabPub.setValue(tab)
+		selectedTabTopic.current.setValue(tab);
 	}
 
 	function initTab(tab: string | null) {
@@ -176,6 +189,7 @@ export default function App() {
 	}
 
 	function handleAlliance(alliance: string | null) {
+		console.log("[Alliance]: " + alliance)
 		setAlliance(() => alliance ?? "No");
 
 		switch(alliance) {
@@ -320,47 +334,60 @@ export default function App() {
 
 	function resetDashboard() {
 		console.log("resetDashboard triggered");
-		NT_CORE.client.cleanup();
 		window.location.reload();
 	}
 
 	// This code handles the connect/disconnect stuff
 	// aka componentDidMount() and componentWillUnmount()
 	useEffect(() => {
-		// Connection stuff here [TODO: Check implementation]
-		NT_CORE.addRobotConnectionListener(() => setConnected(true), true);
-			
-		// setTabPub(() => NT_CORE.createTopic<string>('/ReactDash/Main/dpub/tab', NetworkTablesTypeInfos.kString, "Autonomous"));
-		tabPub.subscribe((value: string | null) => { initTab(value); });
-		console.log("tabPub Announced?: " + tabPub.announced);
-		tabPub.publish({retained: true});
-		// console.log("tabPub Announced?: " + topics.tabPub.announced);
-		// console.log("tabPub Published?: " + topics.tabPub.publisher);
-	
-		NT_CORE.createTopic<string>('/ReactDash/Main/rpub/goTotab', NetworkTablesTypeInfos.kString)
-		.subscribe((value: string | null) => { robotSendTab(value); });
-		NT_CORE.createTopic<number>('/ReactDash/Main/rpub/driverStation', NetworkTablesTypeInfos.kInteger)
-		.subscribe((value: number | null) => { handleDriverStationChangeFromRobot(value); });
-		NT_CORE.createTopic<boolean>('/ReactDash/Main/rpub/joystick0', NetworkTablesTypeInfos.kBoolean)
-		.subscribe((value: boolean | null) => { handleJoystickStatusUpdateFromRobot(value, 0); });
-		NT_CORE.createTopic<boolean>('/ReactDash/Main/rpub/joystick1', NetworkTablesTypeInfos.kBoolean)
-		.subscribe((value: boolean | null) => { handleJoystickStatusUpdateFromRobot(value, 1); });
-		NT_CORE.createTopic<number>('/ReactDash/Main/rpub/matchTime', NetworkTablesTypeInfos.kDouble)
-		.subscribe((value: number | null) => { handleMatchTime(value); });
-		NT_CORE.createTopic<string>('/ReactDash/Main/rpub/alliance', NetworkTablesTypeInfos.kString)
-		.subscribe((value: string | null) => { handleAlliance(value); });
 
-		console.log("tabPub Announced?: " + tabPub.announced);
-		console.log("tabPub Published?: " + tabPub.publisher);
+		// Since it can be null
+		if (!NT_CORE2) return;
 
+		// Listen for robot connection; Diagnostics go to console
+		NT_CORE2.addRobotConnectionListener((e) => setConnected(e), true);
+
+		// Subscribe Topics here...
+		const tabTopic = NT_CORE2.createTopic<string>('/ReactDash/Main/rpub/goTotab', NetworkTablesTypeInfos.kString);
+		const tabSubUID = tabTopic.subscribe((value: string | null) => { robotSendTab(value); });
+
+		const driverStationTopic = NT_CORE2.createTopic<number>('/ReactDash/Main/rpub/driverStation', NetworkTablesTypeInfos.kInteger);
+		const driverStationSubUID = driverStationTopic.subscribe((value: number | null) => { handleDriverStationChangeFromRobot(value); });
+
+		const joystick0Topic = NT_CORE2.createTopic<boolean>('/ReactDash/Main/rpub/joystick0', NetworkTablesTypeInfos.kBoolean);
+		const joystick0SubUID = joystick0Topic.subscribe((value: boolean | null) => { handleJoystickStatusUpdateFromRobot(value, 0); });
+
+		const joystick1Topic = NT_CORE2.createTopic<boolean>('/ReactDash/Main/rpub/joystick1', NetworkTablesTypeInfos.kBoolean);
+		const joystick1SubUID = joystick1Topic.subscribe((value: boolean | null) => { handleJoystickStatusUpdateFromRobot(value, 1); });
+
+		const matchTimeTopic = NT_CORE2.createTopic<number>('/ReactDash/Main/rpub/matchTime', NetworkTablesTypeInfos.kDouble);
+		const matchTimeSubUID = matchTimeTopic.subscribe((value: number | null) => { handleMatchTime(value); });
+
+		const allianceTopic = NT_CORE2.createTopic<string>('/ReactDash/Main/rpub/alliance', NetworkTablesTypeInfos.kString);
+		const allianceSubUID = allianceTopic.subscribe((value: string | null) => { handleAlliance(value); });
+
+		// Publish Topics Here...
+		selectedTabTopic.current = NT_CORE2.createTopic<string>('/ReactDash/Main/dpub/tab', NetworkTablesTypeInfos.kString, "Autonomous");
+		selectedTabTopic.current.publish();
+		console.log("[selectedTabTopic] published?: " + selectedTabTopic.current.publisher);
+		
 		return () => {
-			// Disconnect stuff here
+
+			// Unsubscribe from everything here
 			console.log("Cleaning up...");
-			NT_CORE.client.cleanup();
+			
+			tabTopic.unsubscribe(tabSubUID);
+			driverStationTopic.unsubscribe(driverStationSubUID);
+			joystick0Topic.unsubscribe(joystick0SubUID);
+			joystick1Topic.unsubscribe(joystick1SubUID);
+			matchTimeTopic.unsubscribe(matchTimeSubUID);
+			allianceTopic.unsubscribe(allianceSubUID);
+
+			selectedTabTopic.current.unpublish();
 		};
 
 	// [TODO: Check Dependencies]
-	}, []);
+	}, [NT_CORE2]);
 
 	// Actual App Stuff
 	return (
